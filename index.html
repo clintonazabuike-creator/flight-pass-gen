@@ -3,86 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IATA Standard | Perfect Print Edition</title>
+    <title>IATA Standard | Final Pro Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+128&family=Roboto+Mono:wght@400;700&display=swap');
 
-        /* Force Landscape Print */
         @page { size: landscape; margin: 0; }
         
-        body { background: #1a1a1a; font-family: 'Roboto Mono', monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; color: #000; }
+        body { background: #121212; font-family: 'Roboto Mono', monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         
         /* UI Panel */
-        .controls { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; width: 100%; max-width: 850px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; border-bottom: 4px solid #f1c40f; }
-        input, select { padding: 8px; border: 1px solid #ccc; font-size: 12px; border-radius: 4px; }
-        .print-btn { grid-column: 1/-1; background: #f1c40f; color: #000; border: none; padding: 12px; cursor: pointer; font-weight: bold; border-radius: 4px; }
+        .controls { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; width: 100%; max-width: 850px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; border-bottom: 4px solid #000; }
+        input, select { padding: 8px; border: 1px solid #ccc; font-size: 11px; border-radius: 4px; }
+        .print-btn { grid-column: 1/-1; background: #000; color: #fff; border: none; padding: 12px; cursor: pointer; font-weight: bold; border-radius: 4px; margin-top: 10px; }
 
-        /* THE TICKET - Fixed Dimensions */
+        /* THE TICKET */
         .ticket { 
             width: 8.5in; height: 3.2in; background: #fff; display: flex; 
             border: 1px solid #000; position: relative; box-sizing: border-box;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin: auto;
+            margin: auto; color: #000;
         }
 
-        .main { flex: 2.3; border-right: 1.5px dashed #000; display: flex; flex-direction: column; overflow: hidden; }
-        .stub { flex: 1; padding: 10px; display: flex; flex-direction: column; position: relative; }
+        .main { flex: 2.3; border-right: 1.5px dashed #000; display: flex; flex-direction: column; }
+        .stub { flex: 1; padding: 10px; display: flex; flex-direction: column; }
 
-        /* Box Architecture */
-        .cell { border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px 8px; overflow: hidden; }
-        .label { font-size: 7px; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 1px; color: #444; }
-        .content { font-size: 13px; font-weight: 700; text-transform: uppercase; display: block; white-space: nowrap; }
+        /* Cells */
+        .cell { border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px 8px; }
+        .label { font-size: 7px; font-weight: 700; text-transform: uppercase; display: block; }
+        .content { font-size: 13px; font-weight: 700; text-transform: uppercase; }
 
         .header-row { display: flex; height: 50px; border-bottom: 1px solid #000; }
         .airline-box { flex: 2; padding: 10px; display: flex; align-items: center; font-size: 18px; font-weight: 900; }
-        .status-box { width: 100px; border-left: 1px solid #000; border-right: 1px solid #000; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 10px; font-weight: 900; background: #f1c40f; }
+        .status-box { width: 100px; border-left: 1px solid #000; border-right: 1px solid #000; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 10px; font-weight: 900; }
         
         .route-row { display: grid; grid-template-columns: 1fr 0.5fr 1fr; height: 75px; border-bottom: 1px solid #000; }
-        .code-val { font-size: 38px; font-weight: 700; line-height: 1.2; }
+        .code-val { font-size: 42px; font-weight: 700; line-height: 1.1; }
 
         .details-row { display: grid; grid-template-columns: 1.5fr 1fr 0.7fr 0.8fr; height: 45px; border-bottom: 1px solid #000; }
 
-        .footer-row { display: flex; align-items: center; padding: 5px 10px; flex-grow: 1; gap: 15px; }
-        .legalese { font-size: 6px; width: 140px; line-height: 1.2; }
-
-        /* Barcode 128 */
+        .footer-row { display: flex; align-items: center; padding: 5px 10px; flex-grow: 1; gap: 20px; }
         .barcode { font-family: 'Libre Barcode 128', cursive; font-size: 50px; line-height: 1; }
+
+        /* Color Themes */
+        .theme-gold .status-box { background: #f1c40f; color: #000; }
+        .theme-platinum .status-box { background: #e5e4e2; color: #000; }
+        .theme-vip .status-box { background: #c0392b; color: #fff; }
+        .theme-standard .status-box { background: #eee; color: #000; }
 
         @media print {
             .controls { display: none; }
-            body { background: #fff; padding: 0; height: 100vh; justify-content: center; }
-            .ticket { box-shadow: none; border: 1px solid #000; margin: 0; }
+            body { background: #fff; padding: 0; }
+            .ticket { box-shadow: none; margin: 0; }
         }
     </style>
 </head>
-<body>
+<body class="theme-standard">
 
     <div class="controls">
-        <input type="text" id="i-airline" placeholder="AIRLINE NAME" oninput="upd()">
-        <input type="text" id="i-name" placeholder="PASSENGER NAME" oninput="upd()">
-        <input type="text" id="i-from" placeholder="FROM (e.g. LHR)" maxlength="3" oninput="upd()">
-        <input type="text" id="i-to" placeholder="TO (e.g. JFK)" maxlength="3" oninput="upd()">
+        <input type="text" id="i-airline" placeholder="AIRLINE" oninput="upd()">
+        <input type="text" id="i-name" placeholder="PASSENGER" oninput="upd()">
+        <input type="text" id="i-from" placeholder="FROM (ABC)" maxlength="3" oninput="upd()">
+        <input type="text" id="i-to" placeholder="TO (XYZ)" maxlength="3" oninput="upd()">
         <input type="text" id="i-flight" placeholder="FLIGHT" oninput="upd()">
         <input type="text" id="i-gate" placeholder="GATE" oninput="upd()">
         <input type="text" id="i-seat" placeholder="SEAT" oninput="upd()">
-        <input type="text" id="i-pnr" placeholder="PNR" maxlength="6" oninput="upd()">
+        <input type="date" id="i-date" oninput="upd()">
         <select id="i-status" onchange="upd()">
-            <option value="Standard">STANDARD</option>
-            <option value="Silver Status">SILVER STATUS</option>
-            <option value="Gold Status">GOLD STATUS</option>
-            <option value="Platinum">PLATINUM</option>
-            <option value="VIP / Diplomat">VIP / DIPLOMAT</option>
+            <option value="standard">STANDARD</option>
+            <option value="gold">GOLD STATUS</option>
+            <option value="platinum">PLATINUM</option>
+            <option value="vip">VIP / DIPLOMAT</option>
         </select>
-        <button class="print-btn" onclick="window.print()">GENERATE PDF (LANDSCAPE)</button>
+        <button class="print-btn" onclick="window.print()">PRINT / DOWNLOAD PDF</button>
     </div>
 
-    <div class="ticket">
+    <div class="ticket" id="tkt">
         <div class="main">
             <div class="header-row">
-                <div class="airline-box" id="o-airline">GLOBAL REACH AIRWAYS</div>
+                <div class="airline-box" id="o-airline">AIR FORCE 1</div>
                 <div class="status-box" id="o-status">STANDARD</div>
-                <div class="cell" style="flex:1; border:none;">
-                    <span class="label">Booking Ref</span>
-                    <span class="content" id="o-pnr">------</span>
+                <div class="cell" style="flex:1; border:none; border-left:1px solid #000">
+                    <span class="label">Date</span>
+                    <span class="content" id="o-date">-- --- --</span>
                 </div>
             </div>
 
@@ -99,41 +100,40 @@
             </div>
 
             <div class="details-row">
-                <div class="cell"><span class="label">Name / Nom</span><span class="content" id="o-name">---</span></div>
+                <div class="cell" style="border-left:none;"><span class="label">Passenger</span><span class="content" id="o-name">---</span></div>
                 <div class="cell"><span class="label">Flight</span><span class="content" id="o-flight">---</span></div>
                 <div class="cell"><span class="label">Gate</span><span class="content" id="o-gate">--</span></div>
-                <div class="cell" style="background:#000; color:#fff"><span class="label" style="color:#fff">Seat</span><span class="content" id="o-seat">--</span></div>
+                <div class="cell" style="background:#000; color:#fff; border-right:none;"><span class="label" style="color:#fff">Seat</span><span class="content" id="o-seat">--</span></div>
             </div>
 
             <div class="footer-row">
-                <div class="legalese">CARRIAGE HEREUNDER IS SUBJECT TO THE RULES RELATING TO LIABILITY ESTABLISHED BY THE WARSAW CONVENTION. IATA STANDARD DOCUMENT 001.</div>
-                <div class="barcode" id="o-barcode">BOARDINGDATA</div>
+                <div style="font-size:6px; width:150px">IATA STANDARD DOCUMENT. CARRIAGE SUBJECT TO WARSAW CONVENTION.</div>
+                <div class="barcode" id="o-barcode">RP-DATA-STAY-REAL</div>
             </div>
         </div>
 
         <div class="stub">
-            <div style="font-size:8px; font-weight:900; text-align:center; border:1px solid #000; padding:2px; margin-bottom:8px">PASSENGER RECEIPT</div>
-            <div class="label">Passenger</div>
-            <div class="content" id="o-name-s" style="font-size:11px; margin-bottom:8px">---</div>
-            
-            <div style="display:flex; justify-content:space-between; margin-bottom:5px">
+            <div style="font-size:8px; font-weight:900; text-align:center; border:1px solid #000; padding:2px; margin-bottom:10px">PASSENGER RECEIPT</div>
+            <span class="label">Name</span>
+            <span class="content" id="o-name-s" style="font-size:11px; margin-bottom:10px">---</span>
+            <div style="display:flex; justify-content:space-between">
                 <div><span class="label">Flight</span><span class="content" id="o-flight-s">--</span></div>
-                <div style="text-align:right"><span class="label">Seat</span><span class="content" id="o-seat-s" style="font-size:22px">--</span></div>
+                <div><span class="label">Seat</span><span class="content" id="o-seat-s" style="font-size:20px">--</span></div>
             </div>
-            
-            <div class="barcode" style="font-size:35px; text-align:center">STUBDATA</div>
-            <div style="font-size:7px; margin-top:auto">SEQ NO: 00<span id="o-seq">42</span></div>
+            <div class="barcode" style="font-size:35px; text-align:center; margin-top:10px">STUB</div>
+            <div style="font-size:7px; margin-top:auto">PNR: <span id="o-pnr">------</span></div>
         </div>
     </div>
 
     <script>
-        document.getElementById('o-seq').innerText = Math.floor(Math.random() * 99) + 1;
+        // Set PNR on load
+        document.getElementById('o-pnr').innerText = Math.random().toString(36).substring(2, 8).toUpperCase();
 
         function upd() {
             const get = (id) => document.getElementById(id).value;
             const set = (id, val) => document.getElementById(id).innerText = val.toUpperCase() || '---';
 
-            set('o-airline', get('i-airline') || 'GLOBAL REACH AIRWAYS');
+            set('o-airline', get('i-airline'));
             set('o-name', get('i-name'));
             set('o-name-s', get('i-name'));
             set('o-from', get('i-from'));
@@ -143,11 +143,21 @@
             set('o-gate', get('i-gate'));
             set('o-seat', get('i-seat'));
             set('o-seat-s', get('i-seat'));
-            set('o-pnr', get('i-pnr'));
-            set('o-status', document.getElementById('i-status').value);
+            
+            // Date formatting
+            const d = new Date(get('i-date'));
+            if(!isNaN(d)) {
+                const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+                document.getElementById('o-date').innerText = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear().toString().substr(-2)}`;
+            }
 
-            const bc = (get('i-name') + get('i-flight')).replace(/\s+/g, '').toUpperCase().substring(0, 12);
-            document.getElementById('o-barcode').innerText = bc || "BOARDINGDATA";
+            // Theme Change
+            const status = get('i-status');
+            document.body.className = 'theme-' + status;
+            document.getElementById('o-status').innerText = status === 'standard' ? 'STANDARD' : status.toUpperCase() + ' LVL';
+
+            // Barcode
+            document.getElementById('o-barcode').innerText = (get('i-name') + get('i-flight')).replace(/\s/g, '').toUpperCase().substring(0,15);
         }
     </script>
 </body>
