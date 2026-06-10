@@ -3,162 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IATA Standard | Final Pro Edition</title>
+    <title>Digital Flight Itinerary Generator</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+128&family=Roboto+Mono:wght@400;700&display=swap');
-
-        @page { size: landscape; margin: 0; }
+        body { background: #12002b; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; color: #333; margin: 0; }
         
-        body { background: #121212; font-family: 'Roboto Mono', monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        /* Control Dashboard */
+        .controls { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 25px; width: 100%; max-width: 400px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); box-sizing: border-box;}
+        .controls h2 { grid-column: 1/-1; margin: 0 0 5px 0; font-size: 16px; color: #12002b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .group { display: flex; flex-direction: column; }
+        label { font-size: 10px; font-weight: bold; color: #777; margin-bottom: 4px; text-transform: uppercase; }
+        input, select { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; }
+        .full-width { grid-column: 1/-1; }
+        .print-btn { grid-column: 1/-1; background: #ff0055; color: white; border: none; padding: 12px; cursor: pointer; font-weight: bold; border-radius: 6px; margin-top: 5px; font-size: 14px; }
+
+        /* THE MOBILE CARD */
+        .phone-canvas { width: 390px; background: transparent; padding: 10px; box-sizing: border-box; }
+        .card { background: #ffffff; border-radius: 24px; width: 100%; box-shadow: 0 15px 35px rgba(0,0,0,0.4); padding: 20px; box-sizing: border-box; position: relative; }
         
-        /* UI Panel */
-        .controls { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; width: 100%; max-width: 850px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; border-bottom: 4px solid #000; }
-        input, select { padding: 8px; border: 1px solid #ccc; font-size: 11px; border-radius: 4px; }
-        .print-btn { grid-column: 1/-1; background: #000; color: #fff; border: none; padding: 12px; cursor: pointer; font-weight: bold; border-radius: 4px; margin-top: 10px; }
+        /* Top Header */
+        .card-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eef0f5; padding-bottom: 16px; margin-bottom: 20px; }
+        .airline-meta { display: flex; align-items: center; gap: 12px; }
+        .logo-slot { width: 32px; height: 16px; display: flex; align-items: center; justify-content: center; }
+        .logo-slot img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .fallback-logo { width: 24px; height: 8px; background: #e61c24; border-radius: 2px; transform: skewX(-20deg); }
+        .header-title-wrap { display: flex; flex-direction: column; }
+        .header-main-title { font-size: 18px; font-weight: 700; color: #000; }
+        .header-sub-title { font-size: 14px; color: #8e8e93; margin-top: 2px; }
+        .chevron { font-size: 18px; color: #000; font-weight: bold; }
 
-        /* THE TICKET */
-        .ticket { 
-            width: 8.5in; height: 3.2in; background: #fff; display: flex; 
-            border: 1px solid #000; position: relative; box-sizing: border-box;
-            margin: auto; color: #000;
-        }
+        /* Flight Segment Info */
+        .flight-identity { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; font-size: 15px; font-weight: 600; color: #000; }
 
-        .main { flex: 2.3; border-right: 1.5px dashed #000; display: flex; flex-direction: column; }
-        .stub { flex: 1; padding: 10px; display: flex; flex-direction: column; }
-
-        /* Cells */
-        .cell { border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px 8px; }
-        .label { font-size: 7px; font-weight: 700; text-transform: uppercase; display: block; }
-        .content { font-size: 13px; font-weight: 700; text-transform: uppercase; }
-
-        .header-row { display: flex; height: 50px; border-bottom: 1px solid #000; }
-        .airline-box { flex: 2; padding: 10px; display: flex; align-items: center; font-size: 18px; font-weight: 900; }
-        .status-box { width: 100px; border-left: 1px solid #000; border-right: 1px solid #000; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 10px; font-weight: 900; }
+        /* Timeline Graphics */
+        .timeline-container { display: flex; position: relative; margin-bottom: 20px; padding-left: 5px; }
+        .axis-bar { width: 2px; position: absolute; top: 12px; bottom: 12px; left: 5px; background: #d1d1d6; display: flex; align-items: center; justify-content: center; }
+        .axis-plane { background: #fff; padding: 4px 0; color: #8e8e93; font-size: 16px; transform: rotate(90deg); margin-left: -1px; }
         
-        .route-row { display: grid; grid-template-columns: 1fr 0.5fr 1fr; height: 75px; border-bottom: 1px solid #000; }
-        .code-val { font-size: 42px; font-weight: 700; line-height: 1.1; }
+        .nodes-wrapper { display: flex; flex-direction: column; gap: 45px; width: 100%; padding-left: 25px; }
+        .time-node { position: relative; }
+        .time-node::before { content: ''; position: absolute; width: 8px; height: 8px; background: #fff; border: 2px solid #8e8e93; border-radius: 50%; left: -25px; top: 6px; }
+        
+        .node-time { font-size: 17px; font-weight: 800; color: #000; margin-bottom: 2px; }
+        .node-location { font-size: 15px; color: #000; font-weight: 400; line-height: 1.3; }
+        .node-date { font-size: 13px; color: #8e8e93; margin-top: 2px; }
 
-        .details-row { display: grid; grid-template-columns: 1.5fr 1fr 0.7fr 0.8fr; height: 45px; border-bottom: 1px solid #000; }
-
-        .footer-row { display: flex; align-items: center; padding: 5px 10px; flex-grow: 1; gap: 20px; }
-        .barcode { font-family: 'Libre Barcode 128', cursive; font-size: 50px; line-height: 1; }
-
-        /* Color Themes */
-        .theme-gold .status-box { background: #f1c40f; color: #000; }
-        .theme-platinum .status-box { background: #e5e4e2; color: #000; }
-        .theme-vip .status-box { background: #c0392b; color: #fff; }
-        .theme-standard .status-box { background: #eee; color: #000; }
+        /* Footer Utilities/Amenities Bar */
+        .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eef0f5; }
+        .class-pill { background: #f2f2f7; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 700; color: #431b75; display: flex; align-items: center; gap: 6px; }
+        .class-pill::after { content: '∨'; font-size: 10px; font-weight: bold; margin-left: 2px; color: #431b75; }
+        .amenities { display: flex; gap: 16px; color: #431b75; font-size: 18px; }
+        .amenity-icon { opacity: 0.3; display: none; }
+        .amenity-icon.active { display: block; opacity: 1; }
 
         @media print {
             .controls { display: none; }
-            body { background: #fff; padding: 0; }
-            .ticket { box-shadow: none; margin: 0; }
+            body { background: white; padding: 0; }
+            .card { box-shadow: none; border: 1px solid #eef0f5; }
         }
     </style>
 </head>
-<body class="theme-standard">
+<body>
 
     <div class="controls">
-        <input type="text" id="i-airline" placeholder="AIRLINE" oninput="upd()">
-        <input type="text" id="i-name" placeholder="PASSENGER" oninput="upd()">
-        <input type="text" id="i-from" placeholder="FROM (ABC)" maxlength="3" oninput="upd()">
-        <input type="text" id="i-to" placeholder="TO (XYZ)" maxlength="3" oninput="upd()">
-        <input type="text" id="i-flight" placeholder="FLIGHT" oninput="upd()">
-        <input type="text" id="i-gate" placeholder="GATE" oninput="upd()">
-        <input type="text" id="i-seat" placeholder="SEAT" oninput="upd()">
-        <input type="date" id="i-date" oninput="upd()">
-        <select id="i-status" onchange="upd()">
-            <option value="standard">STANDARD</option>
-            <option value="gold">GOLD STATUS</option>
-            <option value="platinum">PLATINUM</option>
-            <option value="vip">VIP / DIPLOMAT</option>
-        </select>
-        <button class="print-btn" onclick="window.print()">PRINT / DOWNLOAD PDF</button>
+        <h2>Itinerary Interface Engine</h2>
+        <div class="group full-width"><label>Airline Brand</label><input type="text" id="in-airline" placeholder="British Airways" value="British Airways" oninput="upd()"></div>
+        <div class="group full-width"><label>Airline Logo URL (PNG)</label><input type="text" id="in-logo" placeholder="Paste image link..." oninput="upd()"></div>
+        
+        <div class="group"><label>Departure Time</label><input type="text" id="in-dep-time" value="6:40a" oninput="upd()"></div>
+        <div class="group"><label>Arrival Time</label><input type="text" id="in-arr-time" value="7:45a" oninput="upd()"></div>
+        
+        <div class="group full-width"><label>Departure Airport/City</label><input type="text" id="in-dep-city" value="Berlín-Brandenburgo Willy Brandt (BER)" oninput="upd()"></div>
+        <div class="group full-width"><label>Arrival Airport/City</label><input type="text" id="in-arr-city" value="Londres-Heathrow (LHR)" oninput="upd()"></div>
+        
+        <div class="group"><label>Date Summary</label><input type="text" id="in-date-sum" value="May 10" oninput="upd()"></div>
+        <div class="group"><label>Full Date Style</label><input type="text" id="in-date-full" value="Sun, May 10" oninput="upd()"></div>
+        
+        <div class="group"><label>Flight Number</label><input type="text" id="in-flight" value="999" oninput="upd()"></div>
+        <div class="group"><label>Duration</label><input type="text" id="in-duration" value="2h 5m" oninput="upd()"></div>
+        
+        <div class="group"><label>Cabin Tier</label><input type="text" id="in-cabin" value="Turista" oninput="upd()"></div>
+        <div class="group"><label>Amenities</label>
+            <select id="in-amenity-preset" onchange="upd()">
+                <option value="all">All Included</option>
+                <option value="basic">Wi-Fi Only</option>
+                <option value="none">No Services</option>
+            </select>
+        </div>
+        
+        <button class="print-btn" onclick="window.print()">SAVE SCREENSHOT / PDF</button>
     </div>
 
-    <div class="ticket" id="tkt">
-        <div class="main">
-            <div class="header-row">
-                <div class="airline-box" id="o-airline">AIR FORCE 1</div>
-                <div class="status-box" id="o-status">STANDARD</div>
-                <div class="cell" style="flex:1; border:none; border-left:1px solid #000">
-                    <span class="label">Date</span>
-                    <span class="content" id="o-date">-- --- --</span>
+    <div class="phone-canvas">
+        <div class="card">
+            <div class="card-header">
+                <div class="airline-meta">
+                    <div class="logo-slot" id="o-logo-container">
+                        <div class="fallback-logo"></div>
+                    </div>
+                    <div class="header-title-wrap">
+                        <span class="header-main-title">Departure – <span id="o-date-sum">May 10</span></span>
+                        <span class="header-sub-title"><span id="o-airline-hd">British Airways</span> • <span id="o-duration-hd">2h 5m</span></span>
+                    </div>
+                </div>
+                <div class="chevron">∧</div>
+            </div>
+
+            <div class="flight-identity">
+                <div class="logo-slot" id="o-logo-sub-container" style="width:24px;"><div class="fallback-logo" style="transform: scale(0.7) skewX(-20deg);"></div></div>
+                <span><span id="o-airline-mid">British Airways</span> <span id="o-flight-no">999</span></span>
+            </div>
+
+            <div class="timeline-container">
+                <div class="axis-bar">
+                    <div class="axis-plane">✈</div>
+                </div>
+                <div class="nodes-wrapper">
+                    <div class="time-node">
+                        <div class="node-time" id="o-dep-time">6:40a</div>
+                        <div class="node-location" id="o-dep-city">Berlín-Brandenburgo Willy Brandt (BER)</div>
+                        <div class="node-date" id="o-date-f1">Sun, May 10</div>
+                    </div>
+                    <div class="time-node">
+                        <div class="node-time" id="o-arr-time">7:45a</div>
+                        <div class="node-location" id="o-arr-city">Londres-Heathrow (LHR)</div>
+                        <div class="node-date" id="o-date-f2">Sun, May 10</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="route-row">
-                <div class="cell" style="border:none; border-right:1px solid #000;">
-                    <span class="label">From / De</span>
-                    <span class="code-val" id="o-from">---</span>
-                </div>
-                <div class="cell" style="border:none; border-right:1px solid #000; display:flex; align-items:center; justify-content:center; font-size:25px">✈</div>
-                <div class="cell" style="border:none;">
-                    <span class="label">To / A</span>
-                    <span class="code-val" id="o-to">---</span>
+            <div class="card-footer">
+                <div class="class-pill" id="o-cabin">Turista</div>
+                <div class="amenities">
+                    <span class="amenity-icon active" id="am-wifi">📶</span>
+                    <span class="amenity-icon active" id="am-power">🔌</span>
+                    <span class="amenity-icon active" id="am-seat">💺</span>
+                    <span class="amenity-icon active" id="am-food">🍴</span>
                 </div>
             </div>
-
-            <div class="details-row">
-                <div class="cell" style="border-left:none;"><span class="label">Passenger</span><span class="content" id="o-name">---</span></div>
-                <div class="cell"><span class="label">Flight</span><span class="content" id="o-flight">---</span></div>
-                <div class="cell"><span class="label">Gate</span><span class="content" id="o-gate">--</span></div>
-                <div class="cell" style="background:#000; color:#fff; border-right:none;"><span class="label" style="color:#fff">Seat</span><span class="content" id="o-seat">--</span></div>
-            </div>
-
-            <div class="footer-row">
-                <div style="font-size:6px; width:150px">IATA STANDARD DOCUMENT. CARRIAGE SUBJECT TO WARSAW CONVENTION.</div>
-                <div class="barcode" id="o-barcode">RP-DATA-STAY-REAL</div>
-            </div>
-        </div>
-
-        <div class="stub">
-            <div style="font-size:8px; font-weight:900; text-align:center; border:1px solid #000; padding:2px; margin-bottom:10px">PASSENGER RECEIPT</div>
-            <span class="label">Name</span>
-            <span class="content" id="o-name-s" style="font-size:11px; margin-bottom:10px">---</span>
-            <div style="display:flex; justify-content:space-between">
-                <div><span class="label">Flight</span><span class="content" id="o-flight-s">--</span></div>
-                <div><span class="label">Seat</span><span class="content" id="o-seat-s" style="font-size:20px">--</span></div>
-            </div>
-            <div class="barcode" style="font-size:35px; text-align:center; margin-top:10px">STUB</div>
-            <div style="font-size:7px; margin-top:auto">PNR: <span id="o-pnr">------</span></div>
         </div>
     </div>
 
     <script>
-        // Set PNR on load
-        document.getElementById('o-pnr').innerText = Math.random().toString(36).substring(2, 8).toUpperCase();
-
         function upd() {
             const get = (id) => document.getElementById(id).value;
-            const set = (id, val) => document.getElementById(id).innerText = val.toUpperCase() || '---';
-
-            set('o-airline', get('i-airline'));
-            set('o-name', get('i-name'));
-            set('o-name-s', get('i-name'));
-            set('o-from', get('i-from'));
-            set('o-to', get('i-to'));
-            set('o-flight', get('i-flight'));
-            set('o-flight-s', get('i-flight'));
-            set('o-gate', get('i-gate'));
-            set('o-seat', get('i-seat'));
-            set('o-seat-s', get('i-seat'));
             
-            // Date formatting
-            const d = new Date(get('i-date'));
-            if(!isNaN(d)) {
-                const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-                document.getElementById('o-date').innerText = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear().toString().substr(-2)}`;
+            // Text values replacement
+            document.getElementById('o-date-sum').innerText = get('in-date-sum');
+            document.getElementById('o-airline-hd').innerText = get('in-airline');
+            document.getElementById('o-airline-mid').innerText = get('in-airline');
+            document.getElementById('o-duration-hd').innerText = get('in-duration');
+            document.getElementById('o-flight-no').innerText = get('in-flight');
+            document.getElementById('o-dep-time').innerText = get('in-dep-time');
+            document.getElementById('o-arr-time').innerText = get('in-arr-time');
+            document.getElementById('o-dep-city').innerText = get('in-dep-city');
+            document.getElementById('o-arr-city').innerText = get('in-arr-city');
+            document.getElementById('o-date-f1').innerText = get('in-date-full');
+            document.getElementById('o-date-f2').innerText = get('in-date-full');
+            document.getElementById('o-cabin').innerText = get('in-cabin');
+
+            // Handle Logo URL fields if provided
+            const logoUrl = get('in-logo');
+            if(logoUrl) {
+                document.getElementById('o-logo-container').innerHTML = `<img src="${logoUrl}">`;
+                document.getElementById('o-logo-sub-container').innerHTML = `<img src="${logoUrl}">`;
+            } else {
+                document.getElementById('o-logo-container').innerHTML = `<div class="fallback-logo"></div>`;
+                document.getElementById('o-logo-sub-container').innerHTML = `<div class="fallback-logo" style="transform: scale(0.7) skewX(-20deg);"></div>`;
             }
 
-            // Theme Change
-            const status = get('i-status');
-            document.body.className = 'theme-' + status;
-            document.getElementById('o-status').innerText = status === 'standard' ? 'STANDARD' : status.toUpperCase() + ' LVL';
-
-            // Barcode
-            document.getElementById('o-barcode').innerText = (get('i-name') + get('i-flight')).replace(/\s/g, '').toUpperCase().substring(0,15);
+            // Amenities configuration settings
+            const amPreset = get('in-amenity-preset');
+            const icons = ['am-wifi', 'am-power', 'am-seat', 'am-food'];
+            
+            icons.forEach(id => document.getElementById(id).classList.remove('active'));
+            
+            if (amPreset === 'all') {
+                icons.forEach(id => document.getElementById(id).classList.add('active'));
+            } else if (amPreset === 'basic') {
+                document.getElementById('am-wifi').classList.add('active');
+            }
         }
+        // Initialize fields default values layout configuration settings array logic.
+        upd();
     </script>
 </body>
 </html>
